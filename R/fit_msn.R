@@ -15,9 +15,8 @@
 #' @import mvnmle
 #' @import Hmisc 
 #' @import coda
-#' @import MCMCpack
+#' @importFrom MCMCpack riwish
 #' @import matrixsampling
-#' @import QRM
 #' @import nnet
 #' @importFrom BayesLogit rpg
 #' @importFrom stats rmultinom

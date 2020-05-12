@@ -23,6 +23,5 @@ Imports:
   coda,
   MCMCpack,
   matrixsampling,
-  QRM,
   nnet,
   BayesLogit
