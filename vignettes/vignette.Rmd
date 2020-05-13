@@ -46,3 +46,4 @@ fit1 <- fit_msn(Y = example1_data$Y,
                 burn = 0)
 ```
 
+In the model `fit1` above, the number of clusters $K = 3$ was known. However, in most applied settings the true value of $K$ is not known _a priori_.
