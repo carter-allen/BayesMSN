@@ -220,7 +220,6 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
             DELTA[j,] <- c(delta)
             for(l in 1:h)
             {
-                # ALPHA.list[[l]] <- rbind(ALPHA.list[[l]],alpha.list[[l]])
                 OMEGA.list[[l]] <- rbind(OMEGA.list[[l]],c(omega.list[[l]]))
                 BETA.list[[l]] <- rbind(BETA.list[[l]],c(beta.list[[l]]))
                 SIGMA.list[[l]] <- rbind(SIGMA.list[[l]],c(sig2.list[[l]]))
@@ -233,11 +232,10 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
     close(pb)
     run.time<-proc.time()-start.time
     print(paste("Finished MCMC after",run.time[1],"seconds"))
-    ret_list = list(BETA.list,
-                    DELTA,
-                    SIGMA.list,
-                    OMEGA.list,
-                    PSI.list,
+    ret_list = list(BETA = BETA.list,
+                    DELTA = DELTA,
+                    SIGMA = SIGMA.list,
+                    PSI = PSI.list,
                     Z)
     return(ret_list)
 }

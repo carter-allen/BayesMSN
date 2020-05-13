@@ -1,0 +1,48 @@
+---
+title: Vignette for BayesMSN
+author: "Carter Allen"
+date: "5/12/2020"
+output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{Vignette for BayesMSN}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Installation
+
+To install the `BayesMSN` package, use the code below. 
+
+```{r, eval = FALSE}
+devtools::install_github("carter-allen/BayesMSN")
+```
+
+# Overveiw
+
+```{r}
+library(BayesMSN)
+```
+
+# Example 1: Clustered, Skewed Repeated Measures without Missing Data
+
+Included in the `BayesMSN` package is a simulated data set `example1_data`. This data set is meant to simulate longitudinal infant motor development scores as described in Allen et al. (2020). The infant motor development outcomes comprise $J = 4$ repeated measures recorded for $n = 1000$ infants. We also simulated one continuous time-invariant covariate that can be used to model the development scores, and a separate covariate that can be used in the clustering model. The `example1_data` object is a list of three matrices, `Y`, `X`, and `W`, which contain the repeated measures outcomes, regression covariates, and clustering covariates, respectively, as shown below. 
+
+```{r}
+str(example1_data)
+```
+
+The most basic model that can be fit with the `BayesMSN` package is a MSN mixture model where all repeated measure outcomes are non-missing, as is the case with `example1_data$Y`, which contains no missing values. To fit such a model, use the `fit_msn()` function as shown below. Note that the MCMC sampler runs at a rate of roughly 100 iterations per minute on most CPUs. 
+
+```{r}
+fit1 <- fit_msn(Y = example1_data$Y,
+                X = example1_data$X,
+                W = example1_data$W,
+                K = 3,
+                nsim = 1000,
+                burn = 0)
+```
+
