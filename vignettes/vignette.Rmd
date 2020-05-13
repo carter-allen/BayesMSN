@@ -49,9 +49,27 @@ fit3 <- fit_msn(Y = example1_data$Y,
 In the model `fit3` above, the number of clusters $K = 3$ was assumed to be known. However, in most applied settings the true value of $K$ is not known _a priori_. To choose the optimal value for $K$, we can use WAIC, a goodness of fit measure proposed by Watanabe (2010). The `BayesMSN` package includes a function `waic()`, which computes WAIC for models fit with `fit_msn()`, as demonstrated below. 
 
 ```{r}
-waic(fit3)
+fit3_waic <- waic(fit3)
+fit3_waic
 ```
 
+We can compare the value of WAIC for the three cluster model to those of models fit with other values of $K$, say $K = 2$ and $K = 4$, keeping in mind that the goal of modeling infant development data is to explain the the heterogeneity amoung development trajectories with a parsimonious set of development clusters. We note that mispecification of $K$ may lead to MCMC convergence issues. 
+
+Once the optimal value for $K$ is chosen, we can inspect the posterior distributions of model parameters returned by the `fit_msn()` function. For full details on the parameters involved in the MSN mixture model see Allen et al. (2020). For cluster specific parameters such as $\mathbf{B}_k$ -- the matrix of MSN regression coefficients, a list of length $K$ is returned, where element $k$ of the list refers to the estimated parameters for cluster $k$. The `fit_msn()` function returns a total of `nsim - burn` posterior estimates of each parameter, as such, the matrices of posterior estimates `nsim - burn` rows, each corresponding to a draw from the posterior distribution of that parameter. For matrix parameters such as $\mathbf{B}_k$, each posterior sample is vectorized to be stored in the matrix of posterior samples returned by `fit_msn()`. 
+
+To obtain posterior estimates of the regression parameters in `fit3`, we can utilize the `col_summarize()` function included in the `BayesMSN` package. This function accepts a numeric matrix as input and returns a posterior median and credible interval for each column of data in the matrix. A 95\% credible interval is used by default, though this can be controled by changing the `level` argument.
+
+The posterior medians and 95\% credible intervals for the MSN regression coefficients for cluster 1 ($\beta_{111}, \beta_{112}, ..., \beta_{141}, \beta_{142}$) are computed below. 
+
+```{r}
+col_summarize(fit3$BETA[[1]])
+```
+
+Similarly, we can compute the posterior estimates of the parameters for the multinomial regression clustering model as follows. 
+
+```{r}
+col_summarize(fit3$DELTA)
+```
 
 
 # References
