@@ -26,4 +26,7 @@ Imports:
   MCMCpack,
   matrixsampling,
   nnet,
-  BayesLogit
+  BayesLogit,
+  Rlab,
+  boot,
+  mice
