@@ -236,6 +236,9 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
                     DELTA = DELTA,
                     SIGMA = SIGMA.list,
                     PSI = PSI.list,
-                    Z)
+                    Z = Z,
+                    Y = Y,
+                    X = X,
+                    W = W)
     return(ret_list)
 }
