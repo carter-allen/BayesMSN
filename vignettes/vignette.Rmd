@@ -42,7 +42,7 @@ fit1 <- fit_msn(Y = example1_data$Y,
                 X = example1_data$X,
                 W = example1_data$W,
                 K = 3,
-                nsim = 100,
+                nsim = 10,
                 burn = 0)
 ```
 

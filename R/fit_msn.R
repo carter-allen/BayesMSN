@@ -75,6 +75,7 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
 
     n.iter <- nsim - burn # number of saved iterations
     Z = matrix(0,nrow = n.iter,ncol = n) # large matrix where each row is the value of z at a specific iteration
+    T = matrix(0,nrow = n.iter,ncol = n) # storage for t_i's
     PI = matrix(0,nrow = n.iter,ncol = h) # matrix w/ each row as pi vector at each iteration
     BETA.list = vector("list",h) # storage for Beta (vectorized by row)
     SIGMA.list = vector("list",h) # storage for S matrix (vectorized by row)
@@ -158,6 +159,7 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
         
         # Step 2: 
         # Update class-specific regression parameters
+        T.i <- rep(0,n)
         for(l in 1:h) # loop through each cluster
         {
             X.l <- as.matrix(X[z == l,]) # all covariates for those in class l
@@ -185,6 +187,7 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
                 t.l[j] <- truncnorm::rtruncnorm(n = 1,a = 0, b = Inf,mean = ai, sd = sqrt(A))
             }
             Xstar.l <- cbind(X.l,t.l) # add updated t's back to Xstar matrix
+            T.i[z == l] <- t.l
             
             # Update sigma
             # Same as matrix normal regression update
@@ -218,6 +221,7 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
             Z[j,] <- z
             PI[j,] <- table(z)/n
             DELTA[j,] <- c(delta)
+            T[j,] <- T.i
             for(l in 1:h)
             {
                 OMEGA.list[[l]] <- rbind(OMEGA.list[[l]],c(omega.list[[l]]))
@@ -236,6 +240,7 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
                     DELTA = DELTA,
                     SIGMA = SIGMA.list,
                     PSI = PSI.list,
+                    T = T,
                     Z = Z,
                     Y = Y,
                     X = X,
