@@ -38,12 +38,24 @@ str(example1_data)
 The most basic model that can be fit with the `BayesMSN` package is a MSN mixture model where all repeated measure outcomes are non-missing, as is the case with `example1_data$Y`, which contains no missing values. To fit such a model, use the `fit_msn()` function as shown below. Note that the MCMC sampler runs at a rate of roughly 100 iterations per minute on most basic CPUs. 
 
 ```{r}
-fit1 <- fit_msn(Y = example1_data$Y,
+fit3 <- fit_msn(Y = example1_data$Y,
                 X = example1_data$X,
                 W = example1_data$W,
                 K = 3,
-                nsim = 10,
+                nsim = 100,
                 burn = 0)
 ```
 
-In the model `fit1` above, the number of clusters $K = 3$ was known. However, in most applied settings the true value of $K$ is not known _a priori_.
+In the model `fit3` above, the number of clusters $K = 3$ was assumed to be known. However, in most applied settings the true value of $K$ is not known _a priori_. To choose the optimal value for $K$, we can use WAIC, a goodness of fit measure proposed by Watanabe (2010). The `BayesMSN` package includes a function `waic()`, which computes WAIC for models fit with `fit_msn()`, as demonstrated below. 
+
+```{r}
+waic(fit3)
+```
+
+
+
+# References
+
+Allen, C., Neelon, B., Benjamin-Neelon, S.E. (2020). A Bayesian multivariate mixture model for skewed longitudinal data with intermittent missing observations: An application to infant motor development. 
+
+Watanabe, S. (2010). Asymptotic equivalence of Bayes cross validation and widely applicable information criterion in singular learning theory. Journal of Machine Learning Research 11, 3571–3594.
