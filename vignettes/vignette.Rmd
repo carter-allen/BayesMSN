@@ -71,7 +71,9 @@ Similarly, we can compute the posterior estimates of the parameters for the mult
 col_summarize(fit3$DELTA)
 ```
 
-# Example 1: Clustered, Skewed Repeated Measures with Missing Data
+Using packages such as 
+
+# Example 2: Clustered, Skewed Repeated Measures with Missing Data
 
 ```{r}
 fit3_mnar <- fit_msn_impute(example2_data$Y,
@@ -81,6 +83,7 @@ fit3_mnar <- fit_msn_impute(example2_data$Y,
                      K = 3,
                      nsim = 100)
 ```
+
 
 
 # References
