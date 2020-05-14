@@ -53,9 +53,10 @@ Included in the `BayesMSN` package is a simulated data set `example1_data`. This
 str(example1_data)
 ```
 
-The most basic model that can be fit with the `BayesMSN` package is a MSN mixture model where all repeated measure outcomes are non-missing, as is the case with `example1_data$Y`, which contains no missing values. To fit such a model, use the `fit_msn()` function as shown below. Note that the MCMC sampler runs at a rate of roughly 100 iterations per minute for this data set on most basic CPUs. 
+The most basic model that can be fit with the `BayesMSN` package is a MSN mixture model where all repeated measure outcomes are non-missing, as is the case with `example1_data$Y`, which contains no missing values. To fit such a model, use the `fit_msn()` function as shown below. Note that the MCMC sampler runs at a rate of roughly 100 iterations per minute for this data set on most basic CPUs. Please note that 100 MCMC iterations are used below purely for illustrative purposes, and 100 iterations is almost surely not enough to achieve convergence in most applied settings. For most applications of the method presented in Allen et al. (2020) we use 10000 MCMC iterations with a burn in of 1000.
 
 ```{r}
+set.seed(1801)
 fit3 <- fit_msn(Y = example1_data$Y,
                 X = example1_data$X,
                 W = example1_data$W,
@@ -77,11 +78,13 @@ Once the optimal value for $K$ is chosen, we can inspect the posterior distribut
 
 To obtain posterior estimates of the regression parameters in `fit3`, we can utilize the `col_summarize()` function included in the `BayesMSN` package. This function accepts a numeric matrix as input and returns a posterior median and credible interval for each column of data in the matrix. A 95\% credible interval is used by default, though this can be controled by changing the `level` argument.
 
-The posterior medians and 95\% credible intervals for the MSN regression coefficients for cluster 1 ($\beta_{111}, \beta_{112}, ..., \beta_{141}, \beta_{142}$) are computed below. 
+The posterior medians and 95\% credible intervals for the MSN regression coefficients for cluster 1 ($\beta_{111}, \beta_{112}, ..., \beta_{141}, \beta_{142}$) are computed below. To see the true values of the parameters used to generate `example1_data`, see Simulation 1 of Allen et al. (2020). 
 
 ```{r}
 col_summarize(fit3$BETA[[1]])
 ```
+
+
 
 Similarly, we can compute the posterior estimates of the parameters for the multinomial regression clustering model as follows. 
 
@@ -105,7 +108,10 @@ fit3_mnar <- fit_msn_impute(example2_data$Y,
                      nsim = 100)
 ```
 
+
 # Example 3: Clustered, Skew-t Repeated Measures without Missing Data
+
+Finally, as discussed in Allen et al. (2020), we extend the Bayesian MSN mixture model to the Bayesian MST (multivariate skew-$t$) model to account for the possibility of heavy tails compared to MSN data. The `fit_mst()` function is included in `BayesMSN` to fit the MST model. This function opperates similarly to `fit_msn()`, with the addition of an additional  `nu` parameter to specify the degrees of freedom for the MST distribution. Lower values of `nu` correspond to heavier tails relative to the MSN distribution. Consequently, when fit to the `example1_data`, which was generated from an MSN model, we expect the MST model to have poorer fit for lower degrees of freedom relative to the MSN model.
 
 ```{r}
 fit3_MST_3df <- fit_mst(Y = example1_data$Y,
@@ -118,13 +124,22 @@ fit3_MST_3df <- fit_mst(Y = example1_data$Y,
 ```
 
 ```{r}
-fit3_MST_100df <- fit_mst(Y = example1_data$Y,
+waic(fit3_MST_3df)
+```
+
+
+```{r}
+fit3_MST_30df <- fit_mst(Y = example1_data$Y,
                     X = example1_data$X,
                     W = example1_data$W,
                     K = 3,
-                    nu = 100,
+                    nu = 30,
                     nsim = 100,
                     burn = 0)
+```
+
+```{r}
+waic(fit3_MST_30df)
 ```
 
 

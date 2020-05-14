@@ -93,6 +93,7 @@ fit_mst <- function(Y,X,W,K,
   
   n.iter <- nsim - burn # number of saved iterations
   Z = matrix(0,nrow = n.iter,ncol = n) # large matrix where each row is the value of z at a specific iteration
+  T = matrix(0,nrow = n.iter,ncol = n) # storage for t_i's
   PI = matrix(0,nrow = n.iter,ncol = h) # matrix w/ each row as pi vector at each iteration
   BETA.list = vector("list",h) # storage for Beta (vectorized by row)
   SIGMA.list = vector("list",h) # storage for S matrix (vectorized by row)
@@ -223,6 +224,7 @@ fit_mst <- function(Y,X,W,K,
     
     # Step 2: 
     # Update class-specific regression parameters
+    T.i <- rep(0,n)
     for(l in 1:h) # loop through each cluster
     {
       X.l <- as.matrix(X[z == l,]) # all covariates for those in class l
@@ -256,6 +258,7 @@ fit_mst <- function(Y,X,W,K,
       }
       Y.l <- d.l * Y.l
       Xstar.l <- d.l * Xstar.l
+      T.i[z == l] <- t.l
       
       # Update sigma
       # Same as matrix normal regression update
@@ -289,6 +292,7 @@ fit_mst <- function(Y,X,W,K,
       Z[j,] <- z
       PI[j,] <- table(z)/n
       DELTA[j,] <- c(delta)
+      T[j,] <- T.i
       for(l in 1:h)
       {
         # ALPHA.list[[l]] <- rbind(ALPHA.list[[l]],alpha.list[[l]])
@@ -307,8 +311,8 @@ fit_mst <- function(Y,X,W,K,
   ret_list = list(BETA = BETA.list,
                   DELTA = DELTA,
                   SIGMA = SIGMA.list,
-                  OMEGA = OMEGA.list,
                   PSI = PSI.list,
+                  T = T,
                   Z = Z,
                   Y = Y,
                   X = X,
