@@ -1,6 +1,6 @@
 #' Fit MSN mixture model 
 #'
-#' This fits the MSN mixture model without imputation
+#' This function fits the MSN mixture model without imputation
 #' @param Y matrix of non-missing outcome data
 #' @param X matrix of predictors used in the MSN model component
 #' @param W matrix of predictors used in the multinomial logit clustering component

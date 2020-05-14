@@ -3,6 +3,7 @@
 export(col_summarize)
 export(fit_msn)
 export(fit_msn_impute)
+export(fit_mst)
 export(mean_CRI)
 export(waic)
 import(Hmisc)

@@ -21,21 +21,39 @@ To install the `BayesMSN` package, use the code below.
 devtools::install_github("carter-allen/BayesMSN")
 ```
 
-# Overveiw
+Once the package has been installed, you may load it as usual.
 
 ```{r}
 library(BayesMSN)
 ```
 
-# Example 1: Clustered, Skewed Repeated Measures without Missing Data
+# Overveiw
 
-Included in the `BayesMSN` package is a simulated data set `example1_data`. This data set is meant to simulate longitudinal infant motor development scores as described in Allen et al. (2020). The infant motor development outcomes comprise $J = 4$ repeated measures recorded for $n = 1000$ infants. We also simulated one continuous time-invariant covariate that can be used to model the development scores, and a separate covariate that can be used in the clustering model. The `example1_data` object is a list of three matrices, `Y`, `X`, and `W`, which contain the repeated measures outcomes, regression covariates, and clustering covariates, respectively, as shown below. 
+`BayesMSN` is an `R` package for fitting Bayesian multivariate skew-normal mixture models to longitudinal/repeated measures data that may possibly feature latent sub-clusters of longitudinal outcomes. The model is presented in full detail in Allen et al. (2020). Some key features of this model are as follows:
+
+- Uses finite mixture modeling to explain heterogeneity among repeated measures in terms of a parsimonious set of mixture components (i.e., clusters). This feature of the model is useful if interest lies in uncovering latent clusters in longitudinal outcomes that may not be apparent from marginal trajectories.
+
+- Accounts for the possibility of skewness or heavy tails in repeated measures by utilizing skew-normal or skew-$t$ distributions instead of traditional Gaussian distributions. 
+
+- Allows for a wide range of possible covariance patterns among the repeated measures by utlizing unstructured covariance matrices for the multivariate skew-normal (MSN) and multivariate skew-$t$ (MST) distributions.
+
+- Models the cluster indicators themselves using P\'olya--Gamma data augmentation to explain cluster membership as a function of covariates of interest. This is a key advantage over other clustering methods that allows for deeper understanding of cluster profiles and readily available practical interpretations of clusters. 
+
+- Efficiently imputes intermittent missing repeated measures without globar missing at random assumptions (MAR) through the use of the cluster indicators as a discrete shared parameter to account for unobserved association between the missing mechanism and the missing values themselves. 
+
+In summary, the `BayesMSN` package is useful for the longitudinal or multivariate data analysts who seeks a flexible model for uncovering latent sub-clusters among the responses and the ability to explain cluster membership in terms of other practically relevant data. This vignette presents three data analysis examples that showcase some of the key features of `BayesMSN`. 
+
+___Note:___ The core functions in `BayesMSN` use Gibb's sampling to obtain samples from the posterior distributions of all model parameters. Like all Bayesian MCMC methods, care must be taken to assess convergence of the MCMC sampler. To perform these diagnostics, we suggest external packages such as `coda`, `bayesplot`, and `label.switching`. 
+
+# Example 1: Clustered, Skew-Normal Repeated Measures without Missing Data
+
+Included in the `BayesMSN` package is a simulated data set `example1_data`. This data set is meant to simulate repeated measures infant motor development scores as described in Allen et al. (2020). The simulated infant motor development outcomes comprise $J = 4$ repeated measures recorded for $n = 1000$ infants. The total sample is composed of three latent clusters, each  with cluster-specific model parameters. We also simulated one continuous time-invariant covariate that can be used to model the development scores, and a separate covariate that can be used in the clustering model. The `example1_data` object is a list of three matrices, `Y`, `X`, and `W`, which contain the repeated measures outcomes, regression covariates, and clustering covariates, respectively, as shown below. 
 
 ```{r}
 str(example1_data)
 ```
 
-The most basic model that can be fit with the `BayesMSN` package is a MSN mixture model where all repeated measure outcomes are non-missing, as is the case with `example1_data$Y`, which contains no missing values. To fit such a model, use the `fit_msn()` function as shown below. Note that the MCMC sampler runs at a rate of roughly 100 iterations per minute on most basic CPUs. 
+The most basic model that can be fit with the `BayesMSN` package is a MSN mixture model where all repeated measure outcomes are non-missing, as is the case with `example1_data$Y`, which contains no missing values. To fit such a model, use the `fit_msn()` function as shown below. Note that the MCMC sampler runs at a rate of roughly 100 iterations per minute for this data set on most basic CPUs. 
 
 ```{r}
 fit3 <- fit_msn(Y = example1_data$Y,
@@ -71,9 +89,12 @@ Similarly, we can compute the posterior estimates of the parameters for the mult
 col_summarize(fit3$DELTA)
 ```
 
-Using packages such as 
+# Example 2: Clustered, Skew-Normal Repeated Measures with Missing Data
 
-# Example 2: Clustered, Skewed Repeated Measures with Missing Data
+A key feature of the Bayesian MSN mixture model proposed in Allen et al. (2020) is the ability to impute intermittently missing repeated measures under the assumption of conditional ignorability. Specifically, the model assumes that the missing data mechanism is conditionally ignorable given the cluster indicators $z_i$. As such, the cluster indicators $z_i$ act as a discrete shared parameter that induces unobserved association between the missing data mechanism and the missing values themselves. 
+
+To acheive this, we adopt a model logistic regression model for each $R_{ij}$ -- the binary indicator equal to 1 if subject $i$ is missing repeated measure $j$ and zero otherwise. This model includes a random subject specific intercept to induce association among repeated measures taken on the same subject. 
+
 
 ```{r}
 fit3_mnar <- fit_msn_impute(example2_data$Y,
@@ -84,6 +105,27 @@ fit3_mnar <- fit_msn_impute(example2_data$Y,
                      nsim = 100)
 ```
 
+# Example 3: Clustered, Skew-t Repeated Measures without Missing Data
+
+```{r}
+fit3_MST_3df <- fit_mst(Y = example1_data$Y,
+                    X = example1_data$X,
+                    W = example1_data$W,
+                    K = 3,
+                    nu = 3,
+                    nsim = 100,
+                    burn = 0)
+```
+
+```{r}
+fit3_MST_100df <- fit_mst(Y = example1_data$Y,
+                    X = example1_data$X,
+                    W = example1_data$W,
+                    K = 3,
+                    nu = 100,
+                    nsim = 100,
+                    burn = 0)
+```
 
 
 # References
