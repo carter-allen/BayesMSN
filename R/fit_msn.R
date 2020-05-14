@@ -32,38 +32,38 @@
 
 fit_msn <- function(Y,X,W,K,nsim,burn)
 {
-    t = truncnorm::rtruncnorm(nrow(X),a = 0)
-    Xstar <- cbind(X,t)
+    t = truncnorm::rtruncnorm(nrow(X),a = 0) # initialize the random truncnorm latent vars
+    Xstar <- cbind(X,t) # combine with design matrix
     
     # Define parameters
-    h = K
-    k = ncol(Y)
-    n = nrow(Y)
-    p = ncol(X)
-    v = ncol(W)
+    h = K # number of clusters
+    k = ncol(Y) # number of repeated measures outcomes
+    n = nrow(Y)  # number of subjects
+    p = ncol(X) # number of MSN regression covariates
+    v = ncol(W) # number of multinomial reg. covariates
     
     # Define priors 
-    V0 = diag(1,k)
+    V0 = diag(1,k) # used in matnorm updates
     V0.list = vector("list",h)
     V0.list[1:h] = list(V0)
-    L0.list = vector("list",h)
+    L0.list = vector("list",h) # used in matnorm updates
     L0.list[1:h] = list(diag(1,p+1))
-    B0.list = vector("list",h)
+    B0.list = vector("list",h) # prior mean for MSN reg. coeffs
     B0.list[1:h] = list(matrix(0,nrow = p+1,ncol = k))
     delta0 = rep(0,v) # prior mean for delta coefficients (multinomial regression)
     S0 = diag(1,v) # prior covariance for delta coefficients (multinomial regression)
     nu0 = rep(6,h) 
     
     # Define inits
-    pi = rep(1/h,h)
-    z = sample(1:h,n,replace = TRUE,prob = pi) 
-    Bn.list = B0.list
-    Ln.list = L0.list
-    nun = nu0
-    Vn.list = V0.list
-    beta.list = vector("list",h)
-    beta.mle = solve(t(X) %*% X) %*% t(X) %*% Y
-    beta.list[1:h] = list(beta.mle)
+    pi = rep(1/h,h) # used to initialize z (uniformly)
+    z = sample(1:h,n,replace = TRUE,prob = pi) # initialize z
+    Bn.list = B0.list # make storage for B
+    Ln.list = L0.list # make storage for L
+    nun = nu0 # used in updates of Sigma
+    Vn.list = V0.list # used in updates of Sigma
+    beta.list = vector("list",h) #  storage for betas
+    beta.mle = solve(t(X) %*% X) %*% t(X) %*% Y # mle of betas
+    beta.list[1:h] = list(beta.mle) # inits as mles
     sig2.list = vector("list",h)
     sig2.mle = mlest(Y - X %*% beta.mle)$sigmahat
     sig2.list[1:h] = list(sig2.mle)
