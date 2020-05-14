@@ -64,14 +64,14 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
     beta.list = vector("list",h) #  storage for betas
     beta.mle = solve(t(X) %*% X) %*% t(X) %*% Y # mle of betas
     beta.list[1:h] = list(beta.mle) # inits as mles
-    sig2.list = vector("list",h)
-    sig2.mle = mlest(Y - X %*% beta.mle)$sigmahat
-    sig2.list[1:h] = list(sig2.mle)
-    omega.list = V0.list
-    psi.list = vector("list",h)
+    sig2.list = vector("list",h) # storage for sigmas
+    sig2.mle = mlest(Y - X %*% beta.mle)$sigmahat # mles of sigmas
+    sig2.list[1:h] = list(sig2.mle) # inits as mles
+    omega.list = V0.list # storage for omegas
+    psi.list = vector("list",h) # init for psis
     psi.list[1:h] = list(rep(0,k))
-    alpha.list = psi.list
-    delta = matrix(0,nrow = v, ncol = h-1)
+    alpha.list = psi.list  # init for alphas 
+    delta = matrix(0,nrow = v, ncol = h-1) # storage for betas
 
     n.iter <- nsim - burn # number of saved iterations
     Z = matrix(0,nrow = n.iter,ncol = n) # large matrix where each row is the value of z at a specific iteration
@@ -80,9 +80,9 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
     BETA.list = vector("list",h) # storage for Beta (vectorized by row)
     SIGMA.list = vector("list",h) # storage for S matrix (vectorized by row)
     PSI.list = vector("list",h) # storage for psi vector
-    DELTA = matrix(0,nrow = n.iter,ncol = v*(h-1))
+    DELTA = matrix(0,nrow = n.iter,ncol = v*(h-1)) # storage for delta matrix
     OMEGA.list = vector("list",h) # storage for omega matrix (vectorized by row)
-    ALPHA.list = vector("list",h)
+    ALPHA.list = vector("list",h) # storage for alphas
     
     # MCMC
     start.time<-proc.time()
@@ -90,16 +90,14 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
     pb <- txtProgressBar(min = 0, max = nsim, style = 3)
     for(i in 1:nsim)
     {
-        # Step 3:
+        # Step 1:
         # Update pi1,...,piK 
         eta <- cbind(rep(0,n),W%*%delta)
         pi <- exp(eta)/(1+apply(as.matrix(exp(eta[,-1])),1,sum))
-        # End Step 3
         
-        # Step 1A:
+        # Step 2:
         # Update z_j from multinomial conditional posterior
         # for each observed y, compute the probability of belonging in each class
-        # this is done iteratively in a loop but there is probably a better way
         for(j in 1:n)
         {
             y.j <- Y[j,] # outcome for observation j
@@ -110,13 +108,11 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
                 betastar.l <- rbind(beta.list[[l]],psi.list[[l]])
                 mu.j <- xstar.j %*% betastar.l # mean of observation j if it belonged to each class
                 sig2.l <- sig2.list[[l]]
-                p.j[l] <- dmvnorm(y.j,mu.j,sig2.l)
+                p.j[l] <- dmvnorm(y.j,mu.j,sig2.l) # get mvn density
             }
             pi.j <- pi[j,]
             p.z <- pi.j*p.j/sum(pi.j*p.j)
-            # print(p.z)
-            z[j] <- which(rmultinom(1,1,p.z) == 1) # this is very slow 
-            # z <- c # for testing purposes hold z to true value
+            z[j] <- which(rmultinom(1,1,p.z) == 1)
         }
         # convert z to factor so that empty classes are included as 0 counts below and not dropped
         z <- factor(z,levels = 1:h)
@@ -124,7 +120,6 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
         # # n should be a vector of length h
         # # if there is an empty class then the program should stop
         n.z <- as.vector(unname(table(z))) # gives the number of members currently in each class
-        # print(n.z/n)
         if(any(n.z == 0)) # check for empty clusters, if so stop
         {
             print("MCMC terminated due to an empty class.")
@@ -135,11 +130,10 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
             print("MCMC terminated due to a singleton class.")
             break
         }
-        # End Step 1A
         
-        # Step 1B:
+        # Step 3:
         # Update multinomial regression parameters
-        W <- as.matrix(W)
+        W <- as.matrix(W) # enforce W is a matrix
         for(l in 1:(h-1))
         {
             delta.l <- delta[,l]
@@ -155,9 +149,8 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
             delta.l <- c(rmvnorm(1,M,V))
             delta[,l] <- delta.l
         }
-        # End Step 1B
         
-        # Step 2: 
+        # Step 4: 
         # Update class-specific regression parameters
         T.i <- rep(0,n)
         for(l in 1:h) # loop through each cluster
@@ -166,17 +159,17 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
             Y.l <- Y[z == l,] # all outcomes for those in class l
             n.l <- sum(z == l) # current class specific sample size
             psi.l <- psi.list[[l]] # current class specific psis 
-            B0.l <- B0.list[[l]]
-            V0.l <- V0.list[[l]]
-            L0.l <- L0.list[[l]]
-            nu0.l <- nu0[l]
-            nun.l <- nun[l]
-            Bn.l <- Bn.list[[l]]
-            Vn.l <- Vn.list[[l]]
-            Ln.l <- Ln.list[[l]]
-            sig2.l <- sig2.list[[l]]
-            beta.l <- beta.list[[l]]
-            betastar.l <- rbind(beta.l,psi.l)
+            B0.l <- B0.list[[l]] # priors B0
+            V0.l <- V0.list[[l]] # priors V0
+            L0.l <- L0.list[[l]] # priors L0
+            nu0.l <- nu0[l] # priors nu0
+            nun.l <- nun[l] # current nu
+            Bn.l <- Bn.list[[l]] # current B
+            Vn.l <- Vn.list[[l]] # current V
+            Ln.l <- Ln.list[[l]] # current L 
+            sig2.l <- sig2.list[[l]] # current sigma matric
+            beta.l <- beta.list[[l]] # current beta matrix
+            betastar.l <- rbind(beta.l,psi.l) # current betastar
             
             # Update t
             A <- solve(1 + t(psi.l) %*% solve(sig2.l) %*% psi.l)
@@ -187,7 +180,7 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
                 t.l[j] <- truncnorm::rtruncnorm(n = 1,a = 0, b = Inf,mean = ai, sd = sqrt(A))
             }
             Xstar.l <- cbind(X.l,t.l) # add updated t's back to Xstar matrix
-            T.i[z == l] <- t.l
+            T.i[z == l] <- t.l # save T's 
             
             # Update sigma
             # Same as matrix normal regression update
@@ -211,7 +204,6 @@ fit_msn <- function(Y,X,W,K,nsim,burn)
             beta.list[[l]] <- beta.l
             psi.list[[l]] <- psi.l
         }
-        # End step 2
         
         
         # Store results
