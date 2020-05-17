@@ -1,6 +1,6 @@
 Package: BayesMSN
 Title: Bayesian Multivariate Skew Normal Mixture Models
-Version: 0.0.0.9000
+Version: 0.9.0
 Depends: R (>= 3.5.0)
 Author: 
     person(given = "Carter",

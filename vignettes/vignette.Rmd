@@ -46,8 +46,6 @@ In summary, the `BayesMSN` package is useful for the longitudinal or multivariat
 
 ___Note:___ The core functions in `BayesMSN` use Gibb's sampling to obtain samples from the posterior distributions of all model parameters. Like all Bayesian MCMC methods, care must be taken to assess convergence of the MCMC sampler. To perform these diagnostics, we suggest external packages such as `coda`, `bayesplot`, and `label.switching`. 
 
-\newpage
-
 # Example 1: Clustered, Skew-Normal Repeated Measures without Missing Data
 
 Included in the `BayesMSN` package is a simulated data set `example1_data`. This data set is meant to simulate repeated measures infant motor development scores as described in Allen et al. (2020). The simulated infant motor development outcomes comprise $J = 4$ repeated measures recorded for $n = 1000$ infants. The total sample is composed of three latent clusters, each  with cluster-specific model parameters. We also simulated one continuous time-invariant covariate that can be used to model the development scores, and a separate covariate that can be used in the clustering model. The `example1_data` object is a list of three matrices, `Y`, `X`, and `W`, which contain the repeated measures outcomes, regression covariates, and clustering covariates, respectively, as shown below. 
@@ -57,6 +55,8 @@ str(example1_data)
 ```
 
 The most basic model that can be fit with the `BayesMSN` package is a MSN mixture model where all repeated measure outcomes are non-missing, as is the case with `example1_data$Y`, which contains no missing values. To fit such a model, use the `fit_msn()` function as shown below. Note that the MCMC sampler runs at a rate of roughly 100 iterations per minute for this data set on most basic CPUs. Please note that 100 MCMC iterations are used below purely for illustrative purposes, and 100 iterations is almost surely not enough to achieve convergence in most applied settings. For most applications of the method presented in Allen et al. (2020) we use 10000 MCMC iterations with a burn in of 1000.
+
+The `fit_msn()` functions accepts data for each model component as a separate matric. Specifically,  `Y` is an $n \times J$ matrix of repeated measures, where the $J$ responses for subject $i$ are contained in the  $i^{th}$ row of `Y`. Note that if subjects feature missing responses, the `fit_MSN_impute()` function may be used as described in the next section. The  `X` argument is an $n \times p$ matrix of covariates, where the $p$ covariates for subject $i$ are contained in the $i^{th}$ row of `X`. Finally, the matrix `W` is an $n \times r$ matrix containing covariates to be used in the multinomial logit model of cluster indicators. These covariates may be the same as those used in `X`, or they may be separate variables.
 
 ```{r, results='hide'}
 set.seed(1801)
@@ -91,13 +91,21 @@ The posterior medians and 95\% credible intervals for the MSN regression coeffic
 col_summarize(fit3$BETA[[1]])
 ```
 
+These are the posterior estimates of the matrix $\mathbf{B}_1$. In general, the matrix $\mathbf{B}_k$ is constructed as shown below. 
+
+$$\mathbf{B}_k=\begin{pmatrix} \beta_{k11} & \ldots & \beta_{k1J}\\
+              \vdots & \ddots & \vdots \\
+              \beta_{kp1} & \ldots & \beta_{kpJ} \end{pmatrix}$$
+
+The coefficient in the $i^{th}$ row and $j^{th}$ column of $\mathbf{B}_k$ corresponds to the effect of covariate $i$ on the repeated measures outcome at timepoint $j$. Each draw from the posterior distribution of $\mathbf{B}_k$ is vectorized and stored in the `BETA[[k]]` matrix returned by the `fit_msn()` function. Thus, finding the medians and credible intervals of each column in `BETA[[k]]` summarizes the post-burn-in posterior distribution of $\mathbf{B}_k$.
+
 Similarly, we can compute the posterior estimates of the parameters for the multinomial regression clustering model as follows. 
 
 ```{r}
 col_summarize(fit3$DELTA)
 ```
 
-\newpage
+As described in Allen et al. (2020), the parameters $\boldsymbol\delta_k = (\delta_{k1},...,\delta_{kr})$ control the effect of multinomial logit covariate $r$ on each subject's probability of belonging to cluster $k$. We set $\boldsymbol\delta_K = \mathbf{0}_{r \times 1}$ for identifiability. Thus, each row in `DELTA` contains a draw from the posterior distribution of the parameters $\delta_{11}, \delta_{12},...,\delta_{1r}, ..., \delta_{K-1,1},...,\delta_{K-1,r}$.
 
 # Example 2: Clustered, Skew-Normal Repeated Measures with Missing Data
 
@@ -137,8 +145,6 @@ G1 %>%
 
 We can see that higher values of these covariates is estimated to have a negative effect on the log-odds of a missing repeated measures response.
 
-\newpage
-
 # Example 3: Clustered, Skew-t Repeated Measures without Missing Data
 
 Finally, as discussed in Allen et al. (2020), we extend the Bayesian MSN mixture model to the Bayesian MST (multivariate skew-$t$) model to account for the possibility of heavy tails compared to MSN data. The `fit_mst()` function is included in `BayesMSN` to fit the MST model. This function opperates similarly to `fit_msn()`, with the addition of an additional  `nu` parameter to specify the degrees of freedom for the MST distribution. Lower values of `nu` correspond to heavier tails relative to the MSN distribution. Consequently, when fit to the `example1_data`, which was generated from an MSN model, we expect the MST model to have poorer fit for lower degrees of freedom relative to the MSN model.
@@ -161,25 +167,11 @@ fit3_MST_3df_waic <- waic(fit3_MST_3df)
 fit3_MST_3df_waic
 ```
 
-Below we fit the same MST model but with an increased degrees of freedom parameter. Since this model more closely resembles the true MSN model, we expect the WAIC for this model to be lower than the 3 degrees of freedom model, but not quite as low as the true MSN model (i.e., `fit3`).
 
-```{r, results='hide'}
-fit3_MST_30df <- fit_mst(Y = example1_data$Y,
-                    X = example1_data$X,
-                    W = example1_data$W,
-                    K = 3,
-                    nu = 30,
-                    nsim = 100,
-                    burn = 0)
-```
 
-```{r, results='hide'}
-fit3_MST_30df_waic <- waic(fit3_MST_30df)
-```
+# Conclusion
 
-```{r}
-fit3_MST_30df_waic
-```
+The `BayesMSN` package implements Bayesian multivariate skew normal finite mixture models for clustered longitudinal/multivariate outcomes with potential intermittent missingness. The model allows for skewness and/or heavy tails in repeated measures responses. Clusters are inferred via a multinomial logit regression model of the cluster assignment indicators. Further, the assumtion of conditional ignorability of missing responses relaxed the stricter MAR assumption and allows for modeling of the missing data patterns within clusters using covariates of interest. P\'olya--Gamma data augmentation allows for convenient Gibbs updates in the cluster assignment and missing data models. The `BayesMSN` package allows users to conveniently implement the MCMC sampling procedures described in Allen et al. (2020) to quickly obtain posterior samples without needing to implement the MCMC sampler from scratch.  
 
 \newpage
 
