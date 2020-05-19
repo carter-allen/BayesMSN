@@ -24,7 +24,7 @@ devtools::install_github("carter-allen/BayesMSN")
 
 Once the package has been installed, you may load it as usual.
 
-```{r, message=FALSE,warning=FALSE}
+```{r}
 library(BayesMSN)
 ```
 
@@ -112,6 +112,7 @@ As described in Allen et al. (2020), the parameters $\boldsymbol\delta_k = (\del
 A key feature of the Bayesian MSN mixture model proposed in Allen et al. (2020) is the ability to impute intermittently missing repeated measures under the assumption of conditional ignorability. Specifically, the model assumes that the missing data mechanism is conditionally ignorable given the cluster indicators $z_i$. As such, the cluster indicators $z_i$ act as a discrete shared parameter that induces unobserved association between the missing data mechanism and the missing values themselves. 
 
 To acheive this, we adopt a model logistic regression model for each $R_{ij}$ -- the binary indicator equal to 1 if subject $i$ is missing repeated measure $j$ and zero otherwise. This model includes a random subject specific intercept to induce association among repeated measures taken on the same subject. 
+
 
 ```{r, results='hide'}
 fit3_mnar <- fit_msn_impute(example2_data$Y,
