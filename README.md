@@ -13,7 +13,7 @@ install_github('carter-allen/BayesMSN')
 Overview
 ===
 
-`BayesMSN` is an `R` package for fitting Bayesian multivariate skew-normal mixture models to longitudinal/repeated measures data that may possibly feature latent sub-clusters of longitudinal outcomes. The model is presented in full detail in Allen et al. (2020). Some key features of this model are as follows:
+`BayesMSN` is an `R` package for fitting Bayesian multivariate skew-normal mixture models to longitudinal/repeated measures data that may possibly feature latent sub-clusters of longitudinal outcomes. A vignette for the package is available at (https://github.com/carter-allen/BayesMSN/blob/master/doc/vignette.pdf). The model is presented in full detail in Allen et al. (2020). Some key features of this model are as follows:
 
 - Uses finite mixture modeling to explain heterogeneity among repeated measures in terms of a parsimonious set of mixture components (i.e., clusters). This feature of the model is useful if interest lies in uncovering latent clusters in longitudinal outcomes that may not be apparent from marginal trajectories.
 
