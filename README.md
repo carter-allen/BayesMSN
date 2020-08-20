@@ -1,7 +1,7 @@
 BayesMSN
 ===
 
-This package provides implementations of the Bayesian Multivariate Skew-Normal (MSN) mixture models presented in Allen et al. (2020). The Bayesian MSN model is designed to uncover latent clusters in multivariate/longitudinal data that may exibit skewness, e.g., repeated measures infant development scores. 
+This package provides implementations of the Bayesian Multivariate Skew-Normal (MSN) mixture models presented in Allen et al., Biometrics (2020) (https://onlinelibrary.wiley.com/doi/abs/10.1111/biom.13328). The Bayesian MSN model is designed to uncover latent clusters in multivariate/longitudinal data that may exibit skewness, e.g., repeated measures infant development scores. 
 
 Installation
 ===
